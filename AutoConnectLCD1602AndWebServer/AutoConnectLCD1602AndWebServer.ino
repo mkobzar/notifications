@@ -7,12 +7,11 @@
 #include <Wire.h>
 #include <LiquidCrystal_PCF8574.h>
 
-int buttonApin = 0;
+int buttonApin = D0;
 LiquidCrystal_PCF8574 lcd(0x3F); // use i2cScanner to get i2c address
-String form = "<form action='led'><input type='radio' name='state' value='1' checked>On<input type='radio' name='state' value='0'>Off<p><input type='submit' value='Submit'></p></form>";
+//String form = "<form action='led'><input type='radio' name='state' value='1' checked>On<input type='radio' name='state' value='0'>Off<p><input type='submit' value='Submit'></p></form>";
 
 ESP8266WebServer server ( 80 );
-const int led = 16;
 void setup() {
   WiFiManager wifiManager;
   Serial.begin(115200);
@@ -23,11 +22,6 @@ void setup() {
   }
   wifiManager.autoConnect("AutoConnectAP");
   //if you get here you have connected to the WiFi
-  Serial.println("wifiManager.getConfigPortalSSID()-");
-  Serial.println(wifiManager.getConfigPortalSSID());
-
- // pinMode ( led, OUTPUT );
- // digitalWrite ( led, 0 );
 
   while ( WiFi.status() != WL_CONNECTED ) {
     delay ( 500 );
@@ -39,13 +33,6 @@ void setup() {
   }
   Serial.println ( WiFi.localIP() );
 
-//  server.on ( "/", handleRoot );
-//  server.on ( "/test.svg", drawGraph );
-//  server.on ( "/inline", []() {
-//    server.send ( 200, "text/plain", "this works as well" );
-//  } );
-//  server.onNotFound ( handleNotFound );
-//  server.begin();
   Serial.println ( "HTTP server started" );
   Serial.println ( WiFi.localIP() );
   lcd.begin(16, 2); // initialize the lcd
@@ -59,19 +46,17 @@ void setup() {
   if (error == 0) {
     lcd.setBacklight(255);
     lcd.home(); lcd.clear();
-    lcd.print("Hello LCD");
-    delay(1000);
+//    lcd.print("Hello LCD");
+//    delay(1000);
 
-    lcd.setBacklight(0);
-    delay(400);
-    lcd.setBacklight(255);
-    lcd.clear();
+//    lcd.setBacklight(0);
+//    delay(400);
+//    lcd.setBacklight(255);
+//    lcd.clear();
     lcd.print(WiFi.localIP());
 
   }
-  server.on("/", []() {
-    server.send(200, "text/html", form);
-  });
+//  server.on("/", []() {    server.send(200, "text/html", form);  });
   server.on("/calls", handle_calls);
   server.on("/led", handle_led);
     server.begin();
@@ -92,31 +77,22 @@ void handle_led() {
   //  digitalWrite(led, state);
  String msg =  String("LED is now ") + ((state) ? "off" : "on");
   server.send(200, "text/plain", msg);
-//  server.send(200, "text/plain", String("LED is now ") + ((state) ? "on" : "off"));
      lcd.clear();
    lcd.print(msg);
       Serial.println(msg);
-  // Serial.println(String("LED is now ") + ((state) ? "on" : "off"));
 }
 
 void handle_calls() {
-  // get the value of request argument "state" and convert it to an int
   int calls = server.arg("calls").toInt();
   digitalWrite(LED_BUILTIN, calls);
-  
  String msg =  String(calls) + " missed calls";
   server.send(200, "text/plain", msg);
-//  server.send(200, "text/plain", String("LED is now ") + ((state) ? "on" : "off"));
      lcd.clear();
      if(calls>0){
        lcd.print(calls); 
       lcd.setCursor(0, 1); 
       lcd.print("missed calls"); 
-//   lcd.print(msg);
      }
       Serial.println(msg);
-  // Serial.println(String("LED is now ") + ((state) ? "on" : "off"));
 }
-
- 
 
