@@ -16,7 +16,6 @@ const int led = 16;
 void setup() {
   WiFiManager wifiManager;
   Serial.begin(115200);
-  pinMode(LED_BUILTIN, OUTPUT);
   pinMode(buttonApin, INPUT); // GRN->D0 connected = ON, =LOW
   if (digitalRead(buttonApin) == LOW) {
     Serial.println("force reset");
@@ -27,8 +26,8 @@ void setup() {
   Serial.println("wifiManager.getConfigPortalSSID()-");
   Serial.println(wifiManager.getConfigPortalSSID());
 
-  pinMode ( led, OUTPUT );
-  digitalWrite ( led, 0 );
+ // pinMode ( led, OUTPUT );
+ // digitalWrite ( led, 0 );
 
   while ( WiFi.status() != WL_CONNECTED ) {
     delay ( 500 );
@@ -73,11 +72,11 @@ void setup() {
   server.on("/", []() {
     server.send(200, "text/html", form);
   });
-  server.on("/adc", handle_adc);
+  server.on("/calls", handle_calls);
   server.on("/led", handle_led);
     server.begin();
   Serial.println("HTTP server started");
-
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
@@ -85,30 +84,6 @@ void loop() {
 }
 
 
-
-void handleNotFound() {
-  digitalWrite ( led, 1 );
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += ( server.method() == HTTP_GET ) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-
-  for ( uint8_t i = 0; i < server.args(); i++ ) {
-    message += " " + server.argName ( i ) + ": " + server.arg ( i ) + "\n";
-  }
-
-  server.send ( 404, "text/plain", message );
-  digitalWrite ( led, 0 );
-}
-
-void handle_adc() {
-  float val = analogRead(0);
-  server.send(200, "text/plain", String(val));
-}
 
 void handle_led() {
   // get the value of request argument "state" and convert it to an int
@@ -120,6 +95,25 @@ void handle_led() {
 //  server.send(200, "text/plain", String("LED is now ") + ((state) ? "on" : "off"));
      lcd.clear();
    lcd.print(msg);
+      Serial.println(msg);
+  // Serial.println(String("LED is now ") + ((state) ? "on" : "off"));
+}
+
+void handle_calls() {
+  // get the value of request argument "state" and convert it to an int
+  int calls = server.arg("calls").toInt();
+  digitalWrite(LED_BUILTIN, calls);
+  
+ String msg =  String(calls) + " missed calls";
+  server.send(200, "text/plain", msg);
+//  server.send(200, "text/plain", String("LED is now ") + ((state) ? "on" : "off"));
+     lcd.clear();
+     if(calls>0){
+       lcd.print(calls); 
+      lcd.setCursor(0, 1); 
+      lcd.print("missed calls"); 
+//   lcd.print(msg);
+     }
       Serial.println(msg);
   // Serial.println(String("LED is now ") + ((state) ? "on" : "off"));
 }
